@@ -1,0 +1,176 @@
+
+#' Format a p-value
+#'
+#' This function takes a p-value (numeric or character) and formats it so that
+#' values less than 0.001 are treated as <0.001
+#'
+#' @param p_val P-value to be formatted
+#' @return A formatted p-value string
+#' @export
+
+format_pval_apa <- function(p_val){
+  tmp = as.numeric(p_val)
+  if(tmp < 0.001){
+    return("_p_ < 0.001")
+  }else{
+    return(paste0("_p_ = ", scales::number(tmp, accuracy = 0.001)))
+  }
+}
+
+
+#' Format results of a t-test
+#'
+#' This function takes the results of a t-test and formats it for
+#' easy markdown outputs
+#'
+#' @param t_result t-test result to be formatted
+#' @return A formatted t-statistic
+#' @export
+
+format_tstat_apa <- function(t_result){
+  t_stat = scales::number(t_result$statistic, accuracy = 0.01)
+  dof = scales::number(t_result$parameter)
+  p_val = format_pval_apa(t_result$p.value)
+  lci = scales::number(t_result$conf.int[1], accuracy = 0.01)
+  uci = scales::number(t_result$conf.int[2], accuracy = 0.01)
+  if(length(t_result$estimate) == 2){
+    mdiff = scales::number(t_result$estimate[1] - t_result$estimate[2],
+                           accuracy = 0.01)
+
+  }else{
+    mdiff = scales::number(t_result$estimate[1], accuracy = 0.01)
+  }
+  return_str = paste0("_t_(", dof, ") = ", t_stat,
+                      ", ", p_val, ", M~diff~ (95% CI) = ",
+                      mdiff, " (", lci, ", ", uci, ")")
+  return(return_str)
+}
+
+
+
+#' Format ANOVA results for APA reporting
+#'
+#' This function takes the outputs from an ANOVA object (the F-ratio, the degrees of freedom,
+#' the p-value, and, optionally, the partial eta squared) and formats them as a string for
+#' easy copying and pasting into a document or piping into a markdown script.
+#' To return a string that is not formatted for markdown, set as.markdown to FALSE.
+#' All arguments can be passed either as strings or as numbers.
+#'
+#' @param f_stat The F ratio from an ANOVA
+#' @param dfn The degrees of freedom (numerator) from an ANOVA
+#' @param dfd The degrees of freedom (denominator) from an ANOVA
+#' @param p_val The p-value from an ANOVA
+#' @param partial_eta Optional, the effect size from an ANOVA. Default is NA
+#' @param as_markdown Return a string formatted for markdown output? Default it TRUE
+#' @return An APA-formatted string of the ANOVA results
+#' @export
+
+format_anova_string <- function(f_stat, dfn, dfd, p_val,
+                                partial_eta=NA, as_markdown = TRUE){
+  stat_string <- ""
+  if(is.na(partial_eta)){
+    stat_string = paste0('_F_(', scales::number(as.numeric(dfn)),
+                         ', ',
+                         scales::number(as.numeric(dfd)), ')',
+                         ' = ', scales::number(as.numeric(f_stat), accuracy = 0.01),
+                         ', ', format_pval_apa(as.numeric(p_val)))
+  }else{
+    stat_string = paste0('_F_(', scales::number(as.numeric(dfn)),
+                           ', ',
+                           scales::number(as.numeric(dfd)), ')',
+                           ' = ',
+                           scales::number(as.numeric(f_stat), accuracy = 0.01),
+                           ', ', format_pval_apa(as.numeric(p_val)),
+                           ', partial $\\eta^2$ = ',
+                           scales::number(as.numeric(partial_eta), accuracy = 0.01))
+
+  }
+  if(as_markdown == FALSE){
+    stat_string = stringr::str_replace_all(stat_string, "_", "")
+    stat_string = stringr::str_replace(stat_string, "$\\eta^2$", "eta sq.")
+  }
+  return(stat_string)
+}
+
+#' Wrapper to format raw ANOVA results for APA reporting
+#'
+#' This function takes the summary object from an ANOVA object and feeds it
+#' to the format_anova_string function
+#'
+#' @param aov_summary_obj The ANOVA summary object
+#' @param predictor The row or variable name to format output for
+#' @return An APA-formatted string of ANOVA results
+#' @export
+
+extract_stats <- function(aov_summary_obj, predictor = NA){
+  if (length(aov_summary_obj)==1) {
+    res = aov_summary_obj[[1]]
+    if (is.numeric(predictor)){
+      sstring = format_anova_string(f_stat = res$`F value`[predictor],
+                                    dfn = res$Df[predictor],
+                                    dfd = res$Df[nrow(res)],
+                                    p_val = res$`Pr(>F)`[predictor])
+    } else if (is.character(predictor)){
+      tmp = res[predictor,]
+      sstring = format_anova_string(f_stat = tmp$`F`[1],
+                                    dfn = tmp$`Df`[1],
+                                    dfd = res$`Df`[nrow(res)],
+                                    p_val = tmp$`Pr(>F)`[1])
+    } else{
+      sstring = format_anova_string(f_stat = res$`F value`[nrow(res)-1],
+                                    dfn = res$Df[nrow(res)-1],
+                                    dfd = res$Df[nrow(res)],
+                                    p_val = res$`Pr(>F)`[nrow(res)-1])
+    }
+  } else if (length(aov_summary_obj)==7) {
+    if (is.numeric(predictor)){
+      sstring = format_anova_string(f_stat = aov_summary_obj$`F`[predictor],
+                                    dfn = aov_summary_obj$`DFn`[predictor],
+                                    dfd = aov_summary_obj$`DFd`[predictor],
+                                    p_val = aov_summary_obj$`p`[predictor],
+                                    partial_eta = aov_summary_obj[predictor,
+                                                                  ncol(aov_summary_obj)])
+    } else if (is.character(predictor)){
+      tmp = aov_summary_obj[aov_summary_obj$Effect == predictor,]
+      sstring = format_anova_string(f_stat = tmp$`F`[1],
+                                    dfn = tmp$`DFn`[1],
+                                    dfd = tmp$`DFd`[1],
+                                    p_val = tmp$`p`[1],
+                                    partial_eta = tmp[1,ncol(tmp)])
+    } else{
+      sstring = format_anova_string(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)],
+                                    dfn = aov_summary_obj$`DFn`[nrow(aov_summary_obj)],
+                                    dfd = aov_summary_obj$`DFd`[nrow(aov_summary_obj)],
+                                    p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)],
+                                    partial_eta = aov_summary_obj[nrow(aov_summary_obj),
+                                                                  ncol(aov_summary_obj)])
+    }
+  } else if  (length(aov_summary_obj)==4) {
+    aov_summary_obj = aov_summary_obj$table_body
+    if (is.numeric(predictor)){
+      sstring = format_anova_string(f_stat = aov_summary_obj$`F`[predictor],
+                                    dfn = aov_summary_obj$`df`[predictor],
+                                    dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
+                                    p_val = aov_summary_obj$`p`[predictor],
+                                    partial_eta = aov_summary_obj$partial_eta2[predictor])
+
+    } else if (is.character(predictor)){
+      tmp = aov_summary_obj[aov_summary_obj$Predictor == predictor,]
+      sstring = format_anova_string(f_stat = tmp$`F`[1],
+                                    dfn = tmp$`df`[1],
+                                    dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
+                                    p_val = tmp$`p`[1],
+                                    partial_eta = tmp$partial_eta2[1])
+    } else{
+      sstring = format_anova_string(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)-1],
+                                    dfn = aov_summary_obj$`df`[nrow(aov_summary_obj)-1],
+                                    dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
+                                    p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)-1],
+                                    partial_eta = aov_summary_obj$partial_eta2[nrow(aov_summary_obj)-1])
+    }
+  } else {
+    sstring = ""
+  }
+  return(sstring)
+}
+

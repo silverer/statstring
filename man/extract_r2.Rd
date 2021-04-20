@@ -7,7 +7,7 @@
 extract_r2(mod)
 }
 \arguments{
-\item{mod}{A linear regression model}
+\item{mod}{A linear regression model or a summary(lm()) object}
 }
 \value{
 Model R-squared

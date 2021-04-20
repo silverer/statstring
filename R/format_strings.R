@@ -140,7 +140,10 @@ format_anova_string <- function(aov_summary_obj, predictor = NA){
                                     dfd = res$Df[nrow(res)],
                                     p_val = res$`Pr(>F)`[predictor])
     } else if (is.character(predictor)){
+
+      rownames(res) = unlist(lapply(rownames(res), function(x){x=gsub(" ", "", x); x}))
       tmp = res[predictor,]
+      print(tmp)
       sstring = aov_wrapper(f_stat = tmp$`F`[1],
                                     dfn = tmp$`Df`[1],
                                     dfd = res$`Df`[nrow(res)],
@@ -200,12 +203,14 @@ format_anova_string <- function(aov_summary_obj, predictor = NA){
   } else if (length(aov_summary_obj)==13) {
     aov_summary_obj = summary(aov_summary_obj)
     res = aov_summary_obj[[1]]
+
     if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = res$`F value`[predictor],
                             dfn = res$Df[predictor],
                             dfd = res$Df[nrow(res)],
                             p_val = res$`Pr(>F)`[predictor])
     } else if (is.character(predictor)){
+      rownames(res) = unlist(lapply(rownames(res), function(x){x=gsub(" ", "", x); x}))
       tmp = res[predictor,]
       sstring = aov_wrapper(f_stat = tmp$`F`[1],
                             dfn = tmp$`Df`[1],
@@ -246,11 +251,16 @@ format_confint <- function(num, lower.ci, upper.ci){
 #' This function takes an object produced by stats::lm() and returns
 #' the model R-squared
 #'
-#' @param mod A linear regression model
+#' @param mod A linear regression model or a summary(lm()) object
 #' @return Model R-squared
 #' @export
 extract_r2 <- function(mod){
-  mod.sum = stats::summary.lm(mod)
+  if(length(mod) == 13){
+    #Check if summary has already been called
+    mod.sum = stats::summary.lm(mod)
+  }else{
+    mod.sum = mod
+  }
   return(mod.sum$r.squared)
 }
 

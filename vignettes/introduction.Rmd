@@ -22,65 +22,17 @@ library(statstring)
 
 ### Using statstring to format ANOVA outputs
 
-statstring is a package to facilitate formatting ANOVA outputs in APA style. For example, using `stats::aov()`:
+statstring is a package to facilitate formatting ANOVA outputs in APA style.
 
-```{r}
-data("warpbreaks")
-res <- summary(stats::aov(breaks~wool*tension, data = warpbreaks))
-res <- res[[1]] #Get the dataframe with results
-str_out <- format_anova_string(f_stat = res$`F value`[nrow(res)-1],
-                               dfn = res$Df[nrow(res)-1],
-                               dfd = res$Df[nrow(res)],
-                               p_val = res$`Pr(>F)`[nrow(res)-1])
-
-```
-
-There was a significant interaction between tension and wool on breaks, `r str_out`.
-
-Using `rstatix::anova_test` and `rstatix::get_anova_table`
-
-```{r}
-
-res <- rstatix::get_anova_table(rstatix::anova_test(breaks~wool*tension, 
-                                                    data = warpbreaks, type = 3,
-                                                    effect.size = "pes"))
-
-str_out <- format_anova_string(f_stat = res$`F`[nrow(res)],
-                               dfn = res$`DFn`[nrow(res)],
-                               dfd = res$`DFd`[nrow(res)],
-                               p_val = res$`p`[nrow(res)],
-                               partial_eta = res$pes[nrow(res)])
-
-```
-
-There was a significant interaction between tension and wool on breaks, `r str_out`.
-
-
-Using `apaTables::apa.aov.table`:
-
-```{r}
-
-res <- apaTables::apa.aov.table(lm(breaks~wool*tension, data = warpbreaks), type = 3)
-res <- res$table_body #Get the dataframe with results
-str_out <- format_anova_string(f_stat = res$`F`[nrow(res)-1],
-                               dfn = res$`df`[nrow(res)-1],
-                               dfd = res$`df`[nrow(res)],
-                               p_val = res$`p`[nrow(res)-1],
-                               partial_eta = res$partial_eta2[nrow(res)-1])
-
-```
-
-There was a significant interaction between tension and wool on breaks, `r str_out`.
-
-
-You can also pass a summary object to the `extract_stats` function if you're not sure how to get the rows you want out of the ANOVA result. 
+You can pass a summary object to the `format_anova_string()` function to extract and format an ANOVA result. 
 
 For instance, using the stats::aov() function:
 
 
 ```{r}
+data("warpbreaks")
 res <- summary(stats::aov(breaks~wool*tension, data = warpbreaks))
-str_out <- extract_stats(res)
+str_out <- format_anova_string(res)
 ```
 
 
@@ -94,7 +46,7 @@ Using rstatix::get_anova_table() function:
 res <- rstatix::get_anova_table(rstatix::anova_test(breaks~wool*tension, 
                                                     data = warpbreaks, type = 3,
                                                     effect.size = "pes"))
-str_out <- extract_stats(res)
+str_out <- format_anova_string(res)
 
 ```
 
@@ -108,10 +60,10 @@ Using apaTables::apa.aov.table() function (also specifying a particular independ
 ```{r}
 
 res <- apaTables::apa.aov.table(lm(breaks~wool*tension, data = warpbreaks), type = 3)
-interaction_out <- extract_stats(res)
+interaction_out <- format_anova_string(res)
 
-wool_out <- extract_stats(res, predictor = "wool") #Specify the name of the predictor
-tension_out <- extract_stats(res, predictor = 3) #Can also specify the row of the predictor
+wool_out <- format_anova_string(res, predictor = "wool") #Specify the name of the predictor
+tension_out <- format_anova_string(res, predictor = 3) #Can also specify the row of the predictor
 ```
 
 

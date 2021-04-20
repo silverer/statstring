@@ -13,7 +13,29 @@ format_pval_apa <- function(p_val){
   if(tmp < 0.001){
     return("_p_ < 0.001")
   }else{
-    return(paste0("_p_ = ", scales::number(tmp, accuracy = 0.001)))
+    return(paste0("_p_ = ", scales::number(tmp, accuracy = 0.01)))
+  }
+}
+
+#' Get p-value significance stars
+#'
+#' This function takes a p-value and returns a string containing significance asterisks
+#' Returns nothing if p > 0.05
+#'
+#' @param p_val P-value to get stars for
+#' @return A string of significance asterisks
+#' @export
+
+format_sig_stars <- function(p_val){
+  tmp = as.numeric(p_val)
+  if(tmp < 0.001){
+    return("***")
+  }else if(tmp < 0.01){
+    return("**")
+  }else if(tmp < 0.05){
+    return("*")
+  }else{
+    return("")
   }
 }
 
@@ -65,8 +87,9 @@ format_tstat_apa <- function(t_result){
 #' @return An APA-formatted string of the ANOVA results
 #' @export
 
-format_anova_string <- function(f_stat, dfn, dfd, p_val,
-                                partial_eta=NA, as_markdown = TRUE){
+aov_wrapper <- function(f_stat, dfn, dfd, p_val,
+                        partial_eta=NA,
+                        as_markdown = TRUE){
   stat_string <- ""
   if(is.na(partial_eta)){
     stat_string = paste0('_F_(', scales::number(as.numeric(dfn)),
@@ -92,39 +115,45 @@ format_anova_string <- function(f_stat, dfn, dfd, p_val,
   return(stat_string)
 }
 
-#' Wrapper to format raw ANOVA results for APA reporting
+#' Extract statistics and format raw ANOVA results for APA reporting in markdown
 #'
 #' This function takes the summary object from an ANOVA object and feeds it
-#' to the format_anova_string function
+#' to the format_anova_string function.
+#' Accepted ANOVA objects include:
+#' stats::aov()
+#' summary(stats::aov())
+#' rstatix::get_anova_table()
+#' apaTables::apa.aov.table()
+#'
 #'
 #' @param aov_summary_obj The ANOVA summary object
-#' @param predictor The row or variable name to format output for
+#' @param predictor The row or variable name to format output for (defaults to last row)
 #' @return An APA-formatted string of ANOVA results
 #' @export
 
-extract_stats <- function(aov_summary_obj, predictor = NA){
+format_anova_string <- function(aov_summary_obj, predictor = NA){
   if (length(aov_summary_obj)==1) {
     res = aov_summary_obj[[1]]
     if (is.numeric(predictor)){
-      sstring = format_anova_string(f_stat = res$`F value`[predictor],
+      sstring = aov_wrapper(f_stat = res$`F value`[predictor],
                                     dfn = res$Df[predictor],
                                     dfd = res$Df[nrow(res)],
                                     p_val = res$`Pr(>F)`[predictor])
     } else if (is.character(predictor)){
       tmp = res[predictor,]
-      sstring = format_anova_string(f_stat = tmp$`F`[1],
+      sstring = aov_wrapper(f_stat = tmp$`F`[1],
                                     dfn = tmp$`Df`[1],
                                     dfd = res$`Df`[nrow(res)],
                                     p_val = tmp$`Pr(>F)`[1])
     } else{
-      sstring = format_anova_string(f_stat = res$`F value`[nrow(res)-1],
+      sstring = aov_wrapper(f_stat = res$`F value`[nrow(res)-1],
                                     dfn = res$Df[nrow(res)-1],
                                     dfd = res$Df[nrow(res)],
                                     p_val = res$`Pr(>F)`[nrow(res)-1])
     }
   } else if (length(aov_summary_obj)==7) {
     if (is.numeric(predictor)){
-      sstring = format_anova_string(f_stat = aov_summary_obj$`F`[predictor],
+      sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[predictor],
                                     dfn = aov_summary_obj$`DFn`[predictor],
                                     dfd = aov_summary_obj$`DFd`[predictor],
                                     p_val = aov_summary_obj$`p`[predictor],
@@ -132,13 +161,13 @@ extract_stats <- function(aov_summary_obj, predictor = NA){
                                                                   ncol(aov_summary_obj)])
     } else if (is.character(predictor)){
       tmp = aov_summary_obj[aov_summary_obj$Effect == predictor,]
-      sstring = format_anova_string(f_stat = tmp$`F`[1],
+      sstring = aov_wrapper(f_stat = tmp$`F`[1],
                                     dfn = tmp$`DFn`[1],
                                     dfd = tmp$`DFd`[1],
                                     p_val = tmp$`p`[1],
                                     partial_eta = tmp[1,ncol(tmp)])
     } else{
-      sstring = format_anova_string(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)],
+      sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)],
                                     dfn = aov_summary_obj$`DFn`[nrow(aov_summary_obj)],
                                     dfd = aov_summary_obj$`DFd`[nrow(aov_summary_obj)],
                                     p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)],
@@ -148,7 +177,7 @@ extract_stats <- function(aov_summary_obj, predictor = NA){
   } else if  (length(aov_summary_obj)==4) {
     aov_summary_obj = aov_summary_obj$table_body
     if (is.numeric(predictor)){
-      sstring = format_anova_string(f_stat = aov_summary_obj$`F`[predictor],
+      sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[predictor],
                                     dfn = aov_summary_obj$`df`[predictor],
                                     dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
                                     p_val = aov_summary_obj$`p`[predictor],
@@ -156,21 +185,92 @@ extract_stats <- function(aov_summary_obj, predictor = NA){
 
     } else if (is.character(predictor)){
       tmp = aov_summary_obj[aov_summary_obj$Predictor == predictor,]
-      sstring = format_anova_string(f_stat = tmp$`F`[1],
+      sstring = aov_wrapper(f_stat = tmp$`F`[1],
                                     dfn = tmp$`df`[1],
                                     dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
                                     p_val = tmp$`p`[1],
                                     partial_eta = tmp$partial_eta2[1])
     } else{
-      sstring = format_anova_string(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)-1],
+      sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)-1],
                                     dfn = aov_summary_obj$`df`[nrow(aov_summary_obj)-1],
                                     dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
                                     p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)-1],
                                     partial_eta = aov_summary_obj$partial_eta2[nrow(aov_summary_obj)-1])
+    }
+  } else if (length(aov_summary_obj)==13) {
+    aov_summary_obj = summary(aov_summary_obj)
+    res = aov_summary_obj[[1]]
+    if (is.numeric(predictor)){
+      sstring = aov_wrapper(f_stat = res$`F value`[predictor],
+                            dfn = res$Df[predictor],
+                            dfd = res$Df[nrow(res)],
+                            p_val = res$`Pr(>F)`[predictor])
+    } else if (is.character(predictor)){
+      tmp = res[predictor,]
+      sstring = aov_wrapper(f_stat = tmp$`F`[1],
+                            dfn = tmp$`Df`[1],
+                            dfd = res$`Df`[nrow(res)],
+                            p_val = tmp$`Pr(>F)`[1])
+    } else{
+      sstring = aov_wrapper(f_stat = res$`F value`[nrow(res)-1],
+                            dfn = res$Df[nrow(res)-1],
+                            dfd = res$Df[nrow(res)],
+                            p_val = res$`Pr(>F)`[nrow(res)-1])
     }
   } else {
     sstring = ""
   }
   return(sstring)
 }
+
+#' Wrapper to format raw point estimate and lower and upper CI
+#'
+#' This function takes a point estimate, lower CI, and upper CI and returns
+#' a formatted string with the results
+#'
+#' @param num A point estimate
+#' @param lower.ci Lower bound of a confidence interval
+#' @param upper.ci Upper bound of a confidence interval
+#' @return An APA-formatted string of CI results
+#' @export
+format_confint <- function(num, lower.ci, upper.ci){
+  num = scales::number(num, accuracy = 0.01)
+  lower.ci = scales::number(lower.ci, accuracy = 0.01)
+  upper.ci = scales::number(upper.ci, accuracy = 0.01)
+
+  return(paste0(num, " [", lower.ci, ", ", upper.ci, "]"))
+}
+
+#' Wrapper to extract R-squared from a linear regression model
+#'
+#' This function takes an object produced by stats::lm() and returns
+#' the model R-squared
+#'
+#' @param mod A linear regression model
+#' @return Model R-squared
+#' @export
+extract_r2 <- function(mod){
+  mod.sum = stats::summary.lm(mod)
+  return(mod.sum$r.squared)
+}
+
+
+#' Wrapper to extract R-squared from a linear regression model
+#'
+#' This function takes an object produced by stats::lm() and returns
+#' the model R-squared as a string formaatted for markdown output
+#'
+#' @param mod A linear regression model or the R-squared from a regression model
+#' @return Formatted string containing model R-squared
+#' @export
+format_r2 <- function(mod){
+  if(is.numeric(mod)){
+    r2 = mod
+  }else{
+    r2 = extract_r2(mod)
+  }
+  r2.txt = paste0("_R_^2^ = ",scales::number(r2, accuracy = 0.01))
+  return(r2.txt)
+}
+
 

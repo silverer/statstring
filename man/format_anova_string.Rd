@@ -2,37 +2,24 @@
 % Please edit documentation in R/format_strings.R
 \name{format_anova_string}
 \alias{format_anova_string}
-\title{Format ANOVA results for APA reporting}
+\title{Extract statistics and format raw ANOVA results for APA reporting in markdown}
 \usage{
-format_anova_string(
-  f_stat,
-  dfn,
-  dfd,
-  p_val,
-  partial_eta = NA,
-  as_markdown = TRUE
-)
+format_anova_string(aov_summary_obj, predictor = NA)
 }
 \arguments{
-\item{f_stat}{The F ratio from an ANOVA}
+\item{aov_summary_obj}{The ANOVA summary object}
 
-\item{dfn}{The degrees of freedom (numerator) from an ANOVA}
-
-\item{dfd}{The degrees of freedom (denominator) from an ANOVA}
-
-\item{p_val}{The p-value from an ANOVA}
-
-\item{partial_eta}{Optional, the effect size from an ANOVA. Default is NA}
-
-\item{as_markdown}{Return a string formatted for markdown output? Default it TRUE}
+\item{predictor}{The row or variable name to format output for (defaults to last row)}
 }
 \value{
-An APA-formatted string of the ANOVA results
+An APA-formatted string of ANOVA results
 }
 \description{
-This function takes the outputs from an ANOVA object (the F-ratio, the degrees of freedom,
-the p-value, and, optionally, the partial eta squared) and formats them as a string for
-easy copying and pasting into a document or piping into a markdown script.
-To return a string that is not formatted for markdown, set as.markdown to FALSE.
-All arguments can be passed either as strings or as numbers.
+This function takes the summary object from an ANOVA object and feeds it
+to the format_anova_string function.
+Accepted ANOVA objects include:
+stats::aov()
+summary(stats::aov())
+rstatix::get_anova_table()
+apaTables::apa.aov.table()
 }

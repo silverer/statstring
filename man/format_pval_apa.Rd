@@ -14,5 +14,6 @@ A formatted p-value string
 }
 \description{
 This function takes a p-value (numeric or character) and formats it so that
-values less than 0.001 are treated as <0.001
+values less than 0.001 are treated as <0.001. Values less than 0.01 are treated as
+< 0.01
 }

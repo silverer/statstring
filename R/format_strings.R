@@ -2,19 +2,27 @@
 #' Format a p-value
 #'
 #' This function takes a p-value (numeric or character) and formats it so that
-#' values less than 0.001 are treated as <0.001
+#' values less than 0.001 are treated as <0.001. Values less than 0.01 are treated as
+#' < 0.01
 #'
 #' @param p_val P-value to be formatted
 #' @return A formatted p-value string
 #' @export
 
 format_pval_apa <- function(p_val){
-  tmp = as.numeric(p_val)
-  if(tmp < 0.001){
-    return("_p_ < 0.001")
+  if(is.na(p_val)){
+    return("")
   }else{
-    return(paste0("_p_ = ", scales::number(tmp, accuracy = 0.01)))
+    tmp = as.numeric(p_val)
+    if(tmp < 0.001){
+      return("_p_ < 0.001")
+    }else if(tmp < 0.01){
+      return("_p_ < 0.01")
+    }else{
+      return(paste0("_p_ = ", scales::number(tmp, accuracy = 0.01)))
+    }
   }
+
 }
 
 #' Get p-value significance stars
@@ -99,13 +107,13 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
                          ', ', format_pval_apa(as.numeric(p_val)))
   }else{
     stat_string = paste0('_F_(', scales::number(as.numeric(dfn)),
-                           ', ',
-                           scales::number(as.numeric(dfd)), ')',
-                           ' = ',
-                           scales::number(as.numeric(f_stat), accuracy = 0.01),
-                           ', ', format_pval_apa(as.numeric(p_val)),
-                           ', partial $\\eta^2$ = ',
-                           scales::number(as.numeric(partial_eta), accuracy = 0.01))
+                         ', ',
+                         scales::number(as.numeric(dfd)), ')',
+                         ' = ',
+                         scales::number(as.numeric(f_stat), accuracy = 0.01),
+                         ', ', format_pval_apa(as.numeric(p_val)),
+                         ', partial $\\eta^2$ = ',
+                         scales::number(as.numeric(partial_eta), accuracy = 0.01))
 
   }
   if(as_markdown == FALSE){
@@ -128,7 +136,7 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
 #'
 #' @param aov_summary_obj The ANOVA summary object
 #' @param predictor The row or variable name to format output for (defaults to last row)
-#' @param get.all Whether to return a list of all F-values or just one row (overrides predictor)
+#' @param get.all Return a list of all F-values (TRUE) or just one row (FALSE, default, overrides predictor)
 #' @return An APA-formatted string (or strings) of ANOVA results
 #' @export
 
@@ -137,104 +145,102 @@ format_anova_string <- function(aov_summary_obj, predictor = NA,
   if (length(aov_summary_obj)==1) {
     #summary(stats::aov()) output
     res = aov_summary_obj[[1]]
-    if(get.all==T){
-      sstrings = mapply(aov_wrapper, f_stat = res$`F value`,
-                        dfn = res$Df,
-                        dfd = res$Df[nrow(res)],
-                        p_val = res$`Pr(>F)`)
-      return(sstrings)
+    if(get.all==TRUE){
+      sstring = mapply(aov_wrapper, f_stat = res$`F value`,
+                       dfn = res$Df,
+                       dfd = res$Df[nrow(res)],
+                       p_val = res$`Pr(>F)`)
+      sstring[length(sstring)] = NA #last row is just the error term
     } else if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = res$`F value`[predictor],
-                                    dfn = res$Df[predictor],
-                                    dfd = res$Df[nrow(res)],
-                                    p_val = res$`Pr(>F)`[predictor])
+                            dfn = res$Df[predictor],
+                            dfd = res$Df[nrow(res)],
+                            p_val = res$`Pr(>F)`[predictor])
     } else if (is.character(predictor)){
       #remove whitespace from rownames
       rownames(res) = unlist(lapply(rownames(res), function(x){x=gsub(" ", "", x); x}))
       tmp = res[predictor,]
       print(tmp)
       sstring = aov_wrapper(f_stat = tmp$`F`[1],
-                                    dfn = tmp$`Df`[1],
-                                    dfd = res$`Df`[nrow(res)],
-                                    p_val = tmp$`Pr(>F)`[1])
+                            dfn = tmp$`Df`[1],
+                            dfd = res$`Df`[nrow(res)],
+                            p_val = tmp$`Pr(>F)`[1])
     } else{
       sstring = aov_wrapper(f_stat = res$`F value`[nrow(res)-1],
-                                    dfn = res$Df[nrow(res)-1],
-                                    dfd = res$Df[nrow(res)],
-                                    p_val = res$`Pr(>F)`[nrow(res)-1])
+                            dfn = res$Df[nrow(res)-1],
+                            dfd = res$Df[nrow(res)],
+                            p_val = res$`Pr(>F)`[nrow(res)-1])
     }
   } else if (length(aov_summary_obj)==7) {
     #rstatix output
-    if(get.all==T){
-      sstrings = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
-                        dfn = aov_summary_obj$`DFn`,
-                        dfd = aov_summary_obj$`DFd`,
-                        p_val = aov_summary_obj$`p`,
-                        partial_eta = aov_summary_obj[,ncol(aov_summary_obj)])
-      return(sstrings)
+    if(get.all==TRUE){
+      sstring = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
+                       dfn = aov_summary_obj$`DFn`,
+                       dfd = aov_summary_obj$`DFd`,
+                       p_val = aov_summary_obj$`p`,
+                       partial_eta = aov_summary_obj[,ncol(aov_summary_obj)])
     } else if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[predictor],
-                                    dfn = aov_summary_obj$`DFn`[predictor],
-                                    dfd = aov_summary_obj$`DFd`[predictor],
-                                    p_val = aov_summary_obj$`p`[predictor],
-                                    partial_eta = aov_summary_obj[predictor,
-                                                                  ncol(aov_summary_obj)])
+                            dfn = aov_summary_obj$`DFn`[predictor],
+                            dfd = aov_summary_obj$`DFd`[predictor],
+                            p_val = aov_summary_obj$`p`[predictor],
+                            partial_eta = aov_summary_obj[predictor,
+                                                          ncol(aov_summary_obj)])
     } else if (is.character(predictor)){
       tmp = aov_summary_obj[aov_summary_obj$Effect == predictor,]
       sstring = aov_wrapper(f_stat = tmp$`F`[1],
-                                    dfn = tmp$`DFn`[1],
-                                    dfd = tmp$`DFd`[1],
-                                    p_val = tmp$`p`[1],
-                                    partial_eta = tmp[1,ncol(tmp)])
+                            dfn = tmp$`DFn`[1],
+                            dfd = tmp$`DFd`[1],
+                            p_val = tmp$`p`[1],
+                            partial_eta = tmp[1,ncol(tmp)])
     } else{
       sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)],
-                                    dfn = aov_summary_obj$`DFn`[nrow(aov_summary_obj)],
-                                    dfd = aov_summary_obj$`DFd`[nrow(aov_summary_obj)],
-                                    p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)],
-                                    partial_eta = aov_summary_obj[nrow(aov_summary_obj),
-                                                                  ncol(aov_summary_obj)])
+                            dfn = aov_summary_obj$`DFn`[nrow(aov_summary_obj)],
+                            dfd = aov_summary_obj$`DFd`[nrow(aov_summary_obj)],
+                            p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)],
+                            partial_eta = aov_summary_obj[nrow(aov_summary_obj),
+                                                          ncol(aov_summary_obj)])
     }
   } else if  (length(aov_summary_obj)==4) {
     #APA Tables
     aov_summary_obj = aov_summary_obj$table_body
-    if (get.all==T){
-      sstrings = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
-                        dfn = aov_summary_obj$`df`,
-                        dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
-                        p_val = aov_summary_obj$`p`,
-                        partial_eta = aov_summary_obj$partial_eta2)
-      return(sstrings)
+    if (get.all==TRUE){
+      sstring = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
+                       dfn = aov_summary_obj$`df`,
+                       dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
+                       p_val = aov_summary_obj$`p`,
+                       partial_eta = aov_summary_obj$partial_eta2)
     } else if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[predictor],
-                                    dfn = aov_summary_obj$`df`[predictor],
-                                    dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
-                                    p_val = aov_summary_obj$`p`[predictor],
-                                    partial_eta = aov_summary_obj$partial_eta2[predictor])
+                            dfn = aov_summary_obj$`df`[predictor],
+                            dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
+                            p_val = aov_summary_obj$`p`[predictor],
+                            partial_eta = aov_summary_obj$partial_eta2[predictor])
 
     } else if (is.character(predictor)){
       tmp = aov_summary_obj[aov_summary_obj$Predictor == predictor,]
       sstring = aov_wrapper(f_stat = tmp$`F`[1],
-                                    dfn = tmp$`df`[1],
-                                    dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
-                                    p_val = tmp$`p`[1],
-                                    partial_eta = tmp$partial_eta2[1])
+                            dfn = tmp$`df`[1],
+                            dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
+                            p_val = tmp$`p`[1],
+                            partial_eta = tmp$partial_eta2[1])
     } else{
       sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)-1],
-                                    dfn = aov_summary_obj$`df`[nrow(aov_summary_obj)-1],
-                                    dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
-                                    p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)-1],
-                                    partial_eta = aov_summary_obj$partial_eta2[nrow(aov_summary_obj)-1])
+                            dfn = aov_summary_obj$`df`[nrow(aov_summary_obj)-1],
+                            dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
+                            p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)-1],
+                            partial_eta = aov_summary_obj$partial_eta2[nrow(aov_summary_obj)-1])
     }
   } else if (length(aov_summary_obj)==13) {
     #stats::aov() output
     aov_summary_obj = summary(aov_summary_obj)
     res = aov_summary_obj[[1]]
-    if(get.all==T){
-      sstrings = mapply(aov_wrapper, f_stat = res$`F value`,
-                        dfn = res$Df,
-                        dfd = res$Df[nrow(res)],
-                        p_val = res$`Pr(>F)`)
-      return(sstrings)
+    if(get.all==TRUE){
+      sstring = mapply(aov_wrapper, f_stat = res$`F value`,
+                       dfn = res$Df,
+                       dfd = res$Df[nrow(res)],
+                       p_val = res$`Pr(>F)`)
+      sstring[length(sstring)] = NA #last row is just the error term
     }else if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = res$`F value`[predictor],
                             dfn = res$Df[predictor],

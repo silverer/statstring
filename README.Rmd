@@ -48,12 +48,13 @@ summary(aov.res)
 aov.intrxn = format_anova_string(aov.res)
 #Using a specific predictor
 aov.wool = format_anova_string(summary(aov.res), predictor = "wool")
+#Getting all F-statistics
+all.aov.results = format_anova_string(summary(aov.res), get.all=T)
 
 #Results of linear model
 lm.res = stats::lm(breaks~ wool + tension, data = warpbreaks)
 summary(lm.res)
 r2 = format_r2(lm.res)
-## basic example code
 ```
 
 For the t-test, the output looks like `r t.str`. 

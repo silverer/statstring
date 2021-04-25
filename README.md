@@ -71,6 +71,8 @@ aov.wool = format_anova_string(summary(aov.res), predictor = "wool")
 #> wool  1 450.67  450.67  3.7653 0.05821 .
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#Getting all F-statistics
+all.aov.results = format_anova_string(summary(aov.res), get.all=T)
 
 #Results of linear model
 lm.res = stats::lm(breaks~ wool + tension, data = warpbreaks)
@@ -96,7 +98,6 @@ summary(lm.res)
 #> Multiple R-squared:  0.2691, Adjusted R-squared:  0.2253 
 #> F-statistic: 6.138 on 3 and 50 DF,  p-value: 0.00123
 r2 = format_r2(lm.res)
-## basic example code
 ```
 
 For the t-test, the output looks like *t*(52) = 1.63, *p* = 0.11,

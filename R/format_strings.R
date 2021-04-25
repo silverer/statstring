@@ -128,19 +128,28 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
 #'
 #' @param aov_summary_obj The ANOVA summary object
 #' @param predictor The row or variable name to format output for (defaults to last row)
-#' @return An APA-formatted string of ANOVA results
+#' @param get.all Whether to return a list of all F-values or just one row (overrides predictor)
+#' @return An APA-formatted string (or strings) of ANOVA results
 #' @export
 
-format_anova_string <- function(aov_summary_obj, predictor = NA){
+format_anova_string <- function(aov_summary_obj, predictor = NA,
+                                get.all = FALSE){
   if (length(aov_summary_obj)==1) {
+    #summary(stats::aov()) output
     res = aov_summary_obj[[1]]
-    if (is.numeric(predictor)){
+    if(get.all==T){
+      sstrings = mapply(aov_wrapper, f_stat = res$`F value`,
+                        dfn = res$Df,
+                        dfd = res$Df[nrow(res)],
+                        p_val = res$`Pr(>F)`)
+      return(sstrings)
+    } else if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = res$`F value`[predictor],
                                     dfn = res$Df[predictor],
                                     dfd = res$Df[nrow(res)],
                                     p_val = res$`Pr(>F)`[predictor])
     } else if (is.character(predictor)){
-
+      #remove whitespace from rownames
       rownames(res) = unlist(lapply(rownames(res), function(x){x=gsub(" ", "", x); x}))
       tmp = res[predictor,]
       print(tmp)
@@ -155,7 +164,15 @@ format_anova_string <- function(aov_summary_obj, predictor = NA){
                                     p_val = res$`Pr(>F)`[nrow(res)-1])
     }
   } else if (length(aov_summary_obj)==7) {
-    if (is.numeric(predictor)){
+    #rstatix output
+    if(get.all==T){
+      sstrings = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
+                        dfn = aov_summary_obj$`DFn`,
+                        dfd = aov_summary_obj$`DFd`,
+                        p_val = aov_summary_obj$`p`,
+                        partial_eta = aov_summary_obj[,ncol(aov_summary_obj)])
+      return(sstrings)
+    } else if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[predictor],
                                     dfn = aov_summary_obj$`DFn`[predictor],
                                     dfd = aov_summary_obj$`DFd`[predictor],
@@ -178,8 +195,16 @@ format_anova_string <- function(aov_summary_obj, predictor = NA){
                                                                   ncol(aov_summary_obj)])
     }
   } else if  (length(aov_summary_obj)==4) {
+    #APA Tables
     aov_summary_obj = aov_summary_obj$table_body
-    if (is.numeric(predictor)){
+    if (get.all==T){
+      sstrings = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
+                        dfn = aov_summary_obj$`df`,
+                        dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
+                        p_val = aov_summary_obj$`p`,
+                        partial_eta = aov_summary_obj$partial_eta2)
+      return(sstrings)
+    } else if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[predictor],
                                     dfn = aov_summary_obj$`df`[predictor],
                                     dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
@@ -201,10 +226,16 @@ format_anova_string <- function(aov_summary_obj, predictor = NA){
                                     partial_eta = aov_summary_obj$partial_eta2[nrow(aov_summary_obj)-1])
     }
   } else if (length(aov_summary_obj)==13) {
+    #stats::aov() output
     aov_summary_obj = summary(aov_summary_obj)
     res = aov_summary_obj[[1]]
-
-    if (is.numeric(predictor)){
+    if(get.all==T){
+      sstrings = mapply(aov_wrapper, f_stat = res$`F value`,
+                        dfn = res$Df,
+                        dfd = res$Df[nrow(res)],
+                        p_val = res$`Pr(>F)`)
+      return(sstrings)
+    }else if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = res$`F value`[predictor],
                             dfn = res$Df[predictor],
                             dfd = res$Df[nrow(res)],

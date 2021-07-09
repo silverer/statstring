@@ -1,6 +1,8 @@
 ---
-title: "introduction"
+title: "Introduction"
 output: rmarkdown::html_vignette
+author: "Elisabeth R. Silver"
+date: "07/09/2021"
 vignette: >
   %\VignetteIndexEntry{introduction}
   %\VignetteEngine{knitr::rmarkdown}

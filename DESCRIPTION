@@ -1,15 +1,14 @@
 Package: statstring
-Title: What the Package Does (One Line, Title Case)
+Title: Format Results of Basic Statistical Tests for Markdown
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
-           role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to
-    pick a license
+    person(given = "Elisabeth R.",
+           family = "Silver",
+           role = "aut",
+           email = "elisabeth.silver@rice.edu",
+           comment = c(ORCID = "https://orcid.org/0000-0002-4779-0949"))
+Description: This package takes the results of ANOVAs and t-tests and formats them for output in an R markdown file. The package can handle ANOVA outputs from rstatix, apaTables, and stats, and t-test outputs from stats. The t-test function also formats mean differences with 95% confidence intervals.
+License: `use_mit_license()`
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

@@ -112,13 +112,13 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
                          ' = ',
                          scales::number(as.numeric(f_stat), accuracy = 0.01),
                          ', ', format_pval_apa(as.numeric(p_val)),
-                         ', ~partial ~$\\eta^2$ = ',
+                         ', ~partial~ $\\eta^2$ = ',
                          scales::number(as.numeric(partial_eta), accuracy = 0.01))
 
   }
   if(as_markdown == FALSE){
     stat_string = stringr::str_replace_all(stat_string, "_", "")
-    stat_string = stringr::str_replace(stat_string, "~partial ~$\\eta^2$", "partial eta sq.")
+    stat_string = stringr::str_replace(stat_string, "~partial~ $\\eta^2$", "partial eta sq.")
   }
   return(stat_string)
 }

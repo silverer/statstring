@@ -66,7 +66,7 @@ format_tstat_apa <- function(t_result){
 
   if(length(t_result$estimate) == 2){
     mdiff = t_result$estimate[1] - t_result$estimate[2]
-    if(mdiff < 0.001){
+    if(mdiff < 0.01){
       lci = scales::number(t_result$conf.int[1], accuracy = 0.001)
       uci = scales::number(t_result$conf.int[2], accuracy = 0.001)
       mdiff = scales::number(t_result$estimate[1] - t_result$estimate[2],
@@ -331,5 +331,4 @@ format_r2 <- function(mod){
   r2.txt = paste0("_R_^2^ = ",scales::number(r2, accuracy = 0.01))
   return(r2.txt)
 }
-
 

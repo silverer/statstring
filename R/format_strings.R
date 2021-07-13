@@ -58,8 +58,10 @@ format_sig_stars <- function(p_val){
 #' @export
 
 format_tstat_apa <- function(t_result){
-  t_stat = scales::number(t_result$statistic, accuracy = 0.01, big.mark = ",")
-  dof = scales::number(t_result$parameter)
+  t_stat = scales::number(t_result$statistic,
+                          accuracy = 0.01)
+  dof = scales::number(t_result$parameter,
+                       big.mark = ",")
   p_val = format_pval_apa(t_result$p.value)
 
   if(length(t_result$estimate) == 2){

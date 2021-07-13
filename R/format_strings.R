@@ -15,9 +15,9 @@ format_pval_apa <- function(p_val){
   }else{
     tmp = as.numeric(p_val)
     if(tmp < 0.001){
-      return("_p_ < 0.001")
+      return("_p_ < .001")
     }else if(tmp < 0.01){
-      return("_p_ < 0.01")
+      return("_p_ < .01")
     }else{
       return(paste0("_p_ = ", scales::number(tmp, accuracy = 0.01)))
     }
@@ -58,14 +58,24 @@ format_sig_stars <- function(p_val){
 #' @export
 
 format_tstat_apa <- function(t_result){
-  t_stat = scales::number(t_result$statistic, accuracy = 0.01)
+  t_stat = scales::number(t_result$statistic, accuracy = 0.01, big.mark = ",")
   dof = scales::number(t_result$parameter)
   p_val = format_pval_apa(t_result$p.value)
-  lci = scales::number(t_result$conf.int[1], accuracy = 0.01)
-  uci = scales::number(t_result$conf.int[2], accuracy = 0.01)
+
   if(length(t_result$estimate) == 2){
-    mdiff = scales::number(t_result$estimate[1] - t_result$estimate[2],
-                           accuracy = 0.01)
+    mdiff = t_result$estimate[1] - t_result$estimate[2]
+    if(mdiff < 0.001){
+      lci = scales::number(t_result$conf.int[1], accuracy = 0.001)
+      uci = scales::number(t_result$conf.int[2], accuracy = 0.001)
+      mdiff = scales::number(t_result$estimate[1] - t_result$estimate[2],
+                             accuracy = 0.001)
+    }else{
+      lci = scales::number(t_result$conf.int[1], accuracy = 0.01)
+      uci = scales::number(t_result$conf.int[2], accuracy = 0.01)
+      mdiff = scales::number(t_result$estimate[1] - t_result$estimate[2],
+                             accuracy = 0.01)
+    }
+
 
   }else{
     mdiff = scales::number(t_result$estimate[1], accuracy = 0.01)

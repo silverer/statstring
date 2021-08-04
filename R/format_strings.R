@@ -111,13 +111,18 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
                         partial_eta=NA,
                         as_markdown = TRUE){
   stat_string <- ""
-  if(is.na(partial_eta)){
+  if(is.na(partial_eta)|partial_eta=="NA"){
     stat_string = paste0('_F_(', scales::number(as.numeric(dfn)),
                          ', ',
                          scales::number(as.numeric(dfd)), ')',
                          ' = ', scales::number(as.numeric(f_stat), accuracy = 0.01),
                          ', ', format_pval_apa(as.numeric(p_val)))
   }else{
+    if(scales::number(as.numeric(partial_eta), accuracy = 0.01)=="0.00"){
+      partial_eta_str = scales::number(as.numeric(partial_eta), accuracy = 0.001)
+    }else{
+      partial_eta_str = scales::number(as.numeric(partial_eta), accuracy = 0.01)=="0.00"
+    }
     stat_string = paste0('_F_(', scales::number(as.numeric(dfn)),
                          ', ',
                          scales::number(as.numeric(dfd)), ')',
@@ -125,7 +130,7 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
                          scales::number(as.numeric(f_stat), accuracy = 0.01),
                          ', ', format_pval_apa(as.numeric(p_val)),
                          ', ~partial~ $\\eta^2$ = ',
-                         scales::number(as.numeric(partial_eta), accuracy = 0.01))
+                         partial_eta_str)
 
   }
   if(as_markdown == FALSE){
@@ -222,6 +227,7 @@ format_anova_string <- function(aov_summary_obj, predictor = NA,
                        dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
                        p_val = aov_summary_obj$`p`,
                        partial_eta = aov_summary_obj$partial_eta2)
+      sstring[length(sstring)] = ""
     } else if (is.numeric(predictor)){
       sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[predictor],
                             dfn = aov_summary_obj$`df`[predictor],

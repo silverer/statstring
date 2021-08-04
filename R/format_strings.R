@@ -66,25 +66,26 @@ format_tstat_apa <- function(t_result){
 
   if(length(t_result$estimate) == 2){
     mdiff = t_result$estimate[1] - t_result$estimate[2]
-    if(mdiff < 0.01){
-      lci = scales::number(t_result$conf.int[1], accuracy = 0.001)
-      uci = scales::number(t_result$conf.int[2], accuracy = 0.001)
-      mdiff = scales::number(t_result$estimate[1] - t_result$estimate[2],
-                             accuracy = 0.001)
-    }else{
-      lci = scales::number(t_result$conf.int[1], accuracy = 0.01)
-      uci = scales::number(t_result$conf.int[2], accuracy = 0.01)
-      mdiff = scales::number(t_result$estimate[1] - t_result$estimate[2],
-                             accuracy = 0.01)
-    }
-
-
-  }else{
-    mdiff = scales::number(t_result$estimate[1], accuracy = 0.01)
   }
+  else{
+    mdiff = t_result$estimate
+  }
+  if(mdiff < 0.01){
+    lci = scales::number(t_result$conf.int[1], accuracy = 0.001)
+    uci = scales::number(t_result$conf.int[2], accuracy = 0.001)
+    mdiff = scales::number(mdiff,
+                           accuracy = 0.001)
+  }else{
+    lci = scales::number(t_result$conf.int[1], accuracy = 0.01)
+    uci = scales::number(t_result$conf.int[2], accuracy = 0.01)
+    mdiff = scales::number(mdiff,
+                           accuracy = 0.01)
+  }
+
   return_str = paste0("_t_(", dof, ") = ", t_stat,
                       ", ", p_val, ", M~diff~ (95% CI) = ",
                       mdiff, " (", lci, ", ", uci, ")")
+
   return(return_str)
 }
 
@@ -111,7 +112,7 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
                         partial_eta=NA,
                         as_markdown = TRUE){
   stat_string <- ""
-  if(is.na(partial_eta)|partial_eta=="NA"){
+  if(is.na(partial_eta)|partial_eta=="NA"|partial_eta==""){
     stat_string = paste0('_F_(', scales::number(as.numeric(dfn)),
                          ', ',
                          scales::number(as.numeric(dfd)), ')',
@@ -121,7 +122,7 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
     if(scales::number(as.numeric(partial_eta), accuracy = 0.01)=="0.00"){
       partial_eta_str = scales::number(as.numeric(partial_eta), accuracy = 0.001)
     }else{
-      partial_eta_str = scales::number(as.numeric(partial_eta), accuracy = 0.01)=="0.00"
+      partial_eta_str = scales::number(as.numeric(partial_eta), accuracy = 0.01)
     }
     stat_string = paste0('_F_(', scales::number(as.numeric(dfn)),
                          ', ',

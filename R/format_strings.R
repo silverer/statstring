@@ -121,7 +121,7 @@ format_tstat_apa <- function(t_result, cohen_d="none"){
 
 format_corr_apa <- function(r, dof, p){
   r = scales::number(r,accuracy = 0.01)
-  r = stringr::str_remove(r, "0.")
+  r = stringr::str_replace(r, "0.", ".")
   dof = scales::number(dof,
                        big.mark = ",")
   p_val = format_pval_apa(p)

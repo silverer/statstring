@@ -16,7 +16,13 @@ format_pval_apa <- function(p_val){
     tmp = as.numeric(p_val)
     if(tmp < 0.001){
       return("_p_ < .001")
-    }else{
+    }
+    else if(tmp < 0.01){
+      tmp = scales::number(tmp, accuracy = 0.001)
+      tmp = stringr::str_replace(tmp, "0.", ".")
+      return(paste0("_p_ = ", tmp))
+    }
+    else{
       tmp = scales::number(tmp, accuracy = 0.01)
       tmp = stringr::str_replace(tmp, "0.", ".")
       return(paste0("_p_ = ", tmp))

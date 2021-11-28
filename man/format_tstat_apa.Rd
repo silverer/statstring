@@ -4,10 +4,12 @@
 \alias{format_tstat_apa}
 \title{Format results of a t-test}
 \usage{
-format_tstat_apa(t_result)
+format_tstat_apa(t_result, cohen_d = "none")
 }
 \arguments{
 \item{t_result}{t-test result to be formatted}
+
+\item{cohen_d}{optional, Cohen's d standardized effect size}
 }
 \value{
 A formatted t-statistic

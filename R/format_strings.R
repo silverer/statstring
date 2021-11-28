@@ -16,10 +16,10 @@ format_pval_apa <- function(p_val){
     tmp = as.numeric(p_val)
     if(tmp < 0.001){
       return("_p_ < .001")
-    }else if(tmp < 0.01){
-      return("_p_ < .01")
     }else{
-      return(paste0("_p_ = ", scales::number(tmp, accuracy = 0.01)))
+      tmp = scales::number(tmp, accuracy = 0.01)
+      tmp = stringr::str_replace(tmp, "0.", ".")
+      return(paste0("_p_ = ", tmp))
     }
   }
 
@@ -54,21 +54,28 @@ format_sig_stars <- function(p_val){
 #' easy markdown outputs
 #'
 #' @param t_result t-test result to be formatted
+#' @param cohen_d optional, Cohen's d standardized effect size
 #' @return A formatted t-statistic
 #' @export
 
-format_tstat_apa <- function(t_result){
+format_tstat_apa <- function(t_result, cohen_d="none"){
   t_stat = scales::number(t_result$statistic,
                           accuracy = 0.01)
   dof = scales::number(t_result$parameter,
                        big.mark = ",")
   p_val = format_pval_apa(t_result$p.value)
-
   if(length(t_result$estimate) == 2){
     mdiff = t_result$estimate[1] - t_result$estimate[2]
+
   }
   else{
     mdiff = t_result$estimate
+  }
+  if(mdiff < 0){
+    comparison_dir = "negative"
+  }
+  else{
+    comparison_dir = "positive"
   }
   if(mdiff < 0.01){
     lci = scales::number(t_result$conf.int[1], accuracy = 0.001)
@@ -85,11 +92,45 @@ format_tstat_apa <- function(t_result){
   return_str = paste0("_t_(", dof, ") = ", t_stat,
                       ", ", p_val, ", M~diff~ (95% CI) = ",
                       mdiff, " (", lci, ", ", uci, ")")
+  if(is.character(cohen_d)){
+    return(return_str)
+  }
+  else{
+    #make sure cohen's d is the same direction as the t-statistic
+    if(((comparison_dir == "positive" & cohen_d < 0)|
+       (comparison_dir == "negative" & cohen_d > 0))){
+      cohen_d = -1*cohen_d
+    }
+    cohen_d = scales::number(cohen_d, accuracy = 0.01)
+    return_str = paste0(return_str, ", _d_ = ", cohen_d)
+    return(return_str)
+  }
+
+}
+
+#' Format results of a bivariate correlation
+#'
+#' This function takes the results of a bivariate correlation and formats it for
+#' easy markdown outputs
+#'
+#' @param r value of correlation to be formatted
+#' @param dof degrees of freedom for the correlation
+#' @param p p-value of correlation
+#' @return A formatted bivariate correlation statistic
+#' @export
+
+format_corr_apa <- function(r, dof, p){
+  r = scales::number(r,accuracy = 0.01)
+  r = stringr::str_remove(r, "0.")
+  dof = scales::number(dof,
+                       big.mark = ",")
+  p_val = format_pval_apa(p)
+
+  return_str = paste0("_r_(", dof, ") = ", r,
+                      ", ", p_val)
 
   return(return_str)
 }
-
-
 
 #' Format ANOVA results for APA reporting
 #'

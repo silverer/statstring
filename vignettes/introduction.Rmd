@@ -88,3 +88,24 @@ onesample_str <- format_tstat_apa(onesample_test)
 
 There was not a significant difference in breaks by wool type, `r indep_str`. The number of breaks differed from zero, `r onesample_str`.
 
+You can also use the outputs of a pairwise comparison directly when formatting a t-statistic
+
+```{r}
+mod <- lm(breaks~wool*tension, warpbreaks)
+marginal_means <- emmeans::emmeans(mod, c("wool", "tension"))
+pairwise_comps <- data.frame(pairs(marginal_means, adjust="tukey"))
+cis <- data.frame(confint(pairs(marginal_means, adjust="tukey")))
+cis <- cis[,c("contrast", "lower.CL", "upper.CL")]
+pairwise_comps <- dplyr::left_join(pairwise_comps, cis, by = "contrast")
+
+pairwise_comps["stat_string"] <- mapply(format_pairwise_comparison,
+                                        t_stat = pairwise_comps$t.ratio,
+                                        df = pairwise_comps$df,
+                                        p_val= pairwise_comps$p.value,
+                                        mdiff = pairwise_comps$estimate,
+                                        lci=pairwise_comps$lower.CL,
+                                        uci = pairwise_comps$upper.CL)
+```
+
+Example output: `r pairwise_comps$stat_string[1]`
+

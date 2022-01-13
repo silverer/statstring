@@ -4,14 +4,14 @@
 \alias{format_anova_string}
 \title{Extract statistics and format raw ANOVA results for APA reporting in markdown}
 \usage{
-format_anova_string(aov_summary_obj, predictor = NA, get.all = FALSE)
+format_anova_string(aov_summary_obj, predictor = NA, get.all = TRUE)
 }
 \arguments{
 \item{aov_summary_obj}{The ANOVA summary object}
 
 \item{predictor}{The row or variable name to format output for (defaults to last row)}
 
-\item{get.all}{Return a list of all F-values (TRUE) or just one row (FALSE, default, overrides predictor)}
+\item{get.all}{Return a list of all F-values (TRUE, default, overrides predictor) or just one row (FALSE)}
 }
 \value{
 An APA-formatted string (or strings) of ANOVA results

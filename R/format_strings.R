@@ -227,18 +227,22 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
   if(is.na(partial_eta)|partial_eta=="NA"|partial_eta==""){
     stat_string = paste0('_F_(', scales::number(as.numeric(dfn), big.mark = ","),
                          ', ',
-                         scales::number(as.numeric(dfd)), ')',
-                         ' = ', scales::number(as.numeric(f_stat), accuracy = 0.01),
-                         ', ', format_pval_apa(as.numeric(p_val)))
+                         scales::number(as.numeric(dfd), big.mark = ","),
+                         ')',
+                         ' = ',
+                         scales::number(as.numeric(f_stat), accuracy = 0.01),
+                         ', ',
+                         format_pval_apa(as.numeric(p_val)))
   }else{
     if(scales::number(as.numeric(partial_eta), accuracy = 0.01)=="0.00"){
       partial_eta_str = scales::number(as.numeric(partial_eta), accuracy = 0.001)
     }else{
       partial_eta_str = scales::number(as.numeric(partial_eta), accuracy = 0.01)
     }
-    stat_string = paste0('_F_(', scales::number(as.numeric(dfn)),
+    stat_string = paste0('_F_(',
+                         scales::number(as.numeric(dfn), big.mark = ","),
                          ', ',
-                         scales::number(as.numeric(dfd)), ')',
+                         scales::number(as.numeric(dfd), big.mark = ","), ')',
                          ' = ',
                          scales::number(as.numeric(f_stat), accuracy = 0.01),
                          ', ', format_pval_apa(as.numeric(p_val)),

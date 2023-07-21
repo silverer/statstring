@@ -4,7 +4,7 @@
 \alias{format_pval_apa}
 \title{Format a p-value}
 \usage{
-format_pval_apa(p_val)
+format_pval_apa(p_val, as.markdown = F)
 }
 \arguments{
 \item{p_val}{P-value to be formatted}
@@ -13,7 +13,7 @@ format_pval_apa(p_val)
 A formatted p-value string
 }
 \description{
-This function takes a p-value (numeric or character) and formats it so that
+This function takes a p-value (numeric or character) or list of p-values and formats it so that
 values less than 0.001 are treated as <0.001. Values less than 0.01 are treated as
 < 0.01
 }

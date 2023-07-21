@@ -49,7 +49,7 @@ pval_fmt <- function(p_val, markdown=F){
 
 format_pval_apa <- function(p_val, as.markdown=F){
   if(length(p_val)>1){
-    return(mapply(pval_fmt, p_val=p_val, markdown=as.markdoen, USE.NAMES = F))
+    return(mapply(pval_fmt, p_val=p_val, markdown=as.markdown, USE.NAMES = F))
   }else{
     return(pval_fmt(p_val))
   }

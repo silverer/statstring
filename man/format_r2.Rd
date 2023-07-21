@@ -4,10 +4,12 @@
 \alias{format_r2}
 \title{Wrapper to extract R-squared from a linear regression model}
 \usage{
-format_r2(mod)
+format_r2(mod, as.markdown = T)
 }
 \arguments{
 \item{mod}{A linear regression model or the R-squared from a regression model}
+
+\item{as.markdown}{optional, indicates whether the resulting string should be formatted for markdown. Default is TRUE}
 }
 \value{
 Formatted string containing model R-squared

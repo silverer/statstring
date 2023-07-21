@@ -4,7 +4,6 @@
 # statstring
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 The goal of statstring is to facilitate formatting outputs of
@@ -47,7 +46,7 @@ t.res
 #> 
 #> data:  breaks by wool
 #> t = 1.6335, df = 52, p-value = 0.1084
-#> alternative hypothesis: true difference in means is not equal to 0
+#> alternative hypothesis: true difference in means between group A and group B is not equal to 0
 #> 95 percent confidence interval:
 #>  -1.319679 12.875235
 #> sample estimates:
@@ -64,15 +63,8 @@ summary(aov.res)
 #> Residuals    48   5745   119.7                     
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-aov.intrxn = format_anova_string(aov.res)
-#Using a specific predictor
-aov.wool = format_anova_string(summary(aov.res), predictor = "wool")
-#>      Df Sum Sq Mean Sq F value  Pr(>F)  
-#> wool  1 450.67  450.67  3.7653 0.05821 .
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #Getting all F-statistics
-all.aov.results = format_anova_string(summary(aov.res), get.all=T)
+all.aov.results = format_anova_string(summary(aov.res))
 
 #Results of linear model
 lm.res = stats::lm(breaks~ wool + tension, data = warpbreaks)
@@ -100,13 +92,19 @@ summary(lm.res)
 r2 = format_r2(lm.res)
 ```
 
-For the t-test, the output looks like *t*(52) = 1.63, *p* = 0.11,
+For the t-test, the output looks like *t*(52) = 1.63, *p* = .11,
 M<sub>diff</sub> (95% CI) = 5.78 (-1.32, 12.88).
 
-For the ANOVA, the output corresponds to the last factor in the model
-(in this case, the interaction term): *F*(2, 48) = 4.19, *p* = 0.02. You
-can also specify which predictor you want to extract, for example, the
-term for wool is: *F*(1, 48) = 3.77, *p* = 0.06.
+For ANOVAs, the output corresponds to the order in which terms were
+entered into the model. For example, the term for wool (the first factor
+in the model) is: *F*(1, 48) = 3.77, *p* = .06, for tension is *F*(2,
+48) = 8.50, *p* \< .001, and for the interaction between tension and
+wool: *F*(2, 48) = 4.19, *p* = .02
 
 For a linear model using breaks as the criterion and wool and tension as
 predictors, *R*<sup>2</sup> = 0.27
+
+You can also get formatted text outputs that do not include the special
+characters used for formatting things in markdown, such as the
+underscore for italics. To turn off markdown formatting, pass the
+argument `as.markdown=F` to your function.

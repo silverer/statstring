@@ -229,10 +229,11 @@ format_pairwise_comparison <- function(t_stat, df, p_val,
 #' @param r value of correlation to be formatted
 #' @param dof degrees of freedom for the correlation
 #' @param p p-value of correlation
+#' @param as.markdown optional, indicates whether the resulting string should be formatted for markdown. Default is TRUE
 #' @return A formatted bivariate correlation statistic
 #' @export
 
-format_corr_apa <- function(r, dof, p){
+format_corr_apa <- function(r, dof, p, as.markdown=T){
   r = scales::number(r,accuracy = 0.01)
   r = stringr::str_replace(r, "0.", ".")
   dof = scales::number(dof,
@@ -241,8 +242,13 @@ format_corr_apa <- function(r, dof, p){
 
   return_str = paste0("_r_(", dof, ") = ", r,
                       ", ", p_val)
+  if(as.markdown){
+    return(return_str)
+  }else{
+    return_str = stringr::str_remove_all(return_str, "[_]")
+    return(return_str)
+  }
 
-  return(return_str)
 }
 
 #' Format ANOVA results for APA reporting
@@ -311,148 +317,50 @@ aov_wrapper <- function(f_stat, dfn, dfd, p_val,
 #'
 #'
 #' @param aov_summary_obj The ANOVA summary object
-#' @param predictor The row or variable name to format output for (defaults to last row)
-#' @param get.all Return a list of all F-values (TRUE, default, overrides predictor) or just one row (FALSE)
 #' @param as.markdown optional, indicates whether the resulting string should be formatted for markdown. Default is TRUE
+#' @param get.all deprecated, no longer an option but retaining in the function prevents errors from prior versions
 #' @return An APA-formatted string (or strings) of ANOVA results
 #' @export
 
-format_anova_string <- function(aov_summary_obj, predictor = NA,
-                                get.all = TRUE, as.markdown=T){
+format_anova_string <- function(aov_summary_obj, as.markdown=T, get.all=T){
   if (length(aov_summary_obj)==1) {
     #summary(stats::aov()) output
     res = aov_summary_obj[[1]]
-    if(get.all==TRUE){
-      sstring = mapply(aov_wrapper, f_stat = res$`F value`,
-                       dfn = res$Df,
-                       dfd = res$Df[nrow(res)],
-                       p_val = res$`Pr(>F)`,
-                       as.markdown=as.markdown)
-      sstring[length(sstring)] = NA #last row is just the error term
-    } else if (is.numeric(predictor)){
-      sstring = aov_wrapper(f_stat = res$`F value`[predictor],
-                            dfn = res$Df[predictor],
-                            dfd = res$Df[nrow(res)],
-                            p_val = res$`Pr(>F)`[predictor],
-                            as.markdown=as.markdown)
-    } else if (is.character(predictor)){
-      #remove whitespace from rownames
-      rownames(res) = unlist(lapply(rownames(res), function(x){x=gsub(" ", "", x); x}))
-      tmp = res[predictor,]
-      print(tmp)
-      sstring = aov_wrapper(f_stat = tmp$`F`[1],
-                            dfn = tmp$`Df`[1],
-                            dfd = res$`Df`[nrow(res)],
-                            p_val = tmp$`Pr(>F)`[1],
-                            as.markdown=as.markdown)
-    } else{
-      sstring = aov_wrapper(f_stat = res$`F value`[nrow(res)-1],
-                            dfn = res$Df[nrow(res)-1],
-                            dfd = res$Df[nrow(res)],
-                            p_val = res$`Pr(>F)`[nrow(res)-1],
-                            as.markdown=as.markdown)
-    }
+    sstring = mapply(aov_wrapper, f_stat = res$`F value`,
+                     dfn = res$Df,
+                     dfd = res$Df[nrow(res)],
+                     p_val = res$`Pr(>F)`,
+                     as.markdown=as.markdown)
+    sstring[length(sstring)] = NA #last row is just the error term
+
   } else if (length(aov_summary_obj)==7) {
     #rstatix output
-    if(get.all==TRUE){
-      sstring = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
-                       dfn = aov_summary_obj$`DFn`,
-                       dfd = aov_summary_obj$`DFd`,
-                       p_val = aov_summary_obj$`p`,
-                       partial_eta = aov_summary_obj[,ncol(aov_summary_obj)],
-                       as.markdown=as.markdown)
-    } else if (is.numeric(predictor)){
-      sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[predictor],
-                            dfn = aov_summary_obj$`DFn`[predictor],
-                            dfd = aov_summary_obj$`DFd`[predictor],
-                            p_val = aov_summary_obj$`p`[predictor],
-                            partial_eta = aov_summary_obj[predictor,
-                                                          ncol(aov_summary_obj)],
-                            as.markdown=as.markdown)
-    } else if (is.character(predictor)){
-      tmp = aov_summary_obj[aov_summary_obj$Effect == predictor,]
-      sstring = aov_wrapper(f_stat = tmp$`F`[1],
-                            dfn = tmp$`DFn`[1],
-                            dfd = tmp$`DFd`[1],
-                            p_val = tmp$`p`[1],
-                            partial_eta = tmp[1,ncol(tmp)],
-                            as.markdown=as.markdown)
-    } else{
-      sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)],
-                            dfn = aov_summary_obj$`DFn`[nrow(aov_summary_obj)],
-                            dfd = aov_summary_obj$`DFd`[nrow(aov_summary_obj)],
-                            p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)],
-                            partial_eta = aov_summary_obj[nrow(aov_summary_obj),
-                                                          ncol(aov_summary_obj)],
-                            as.markdown=as.markdown)
-    }
+    sstring = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
+                     dfn = aov_summary_obj$`DFn`,
+                     dfd = aov_summary_obj$`DFd`,
+                     p_val = aov_summary_obj$`p`,
+                     partial_eta = aov_summary_obj[,ncol(aov_summary_obj)],
+                     as.markdown=as.markdown)
   } else if  (length(aov_summary_obj)==4) {
-    #APA Tables
+    #APA Tables output
     aov_summary_obj = aov_summary_obj$table_body
-    if (get.all==TRUE){
-      sstring = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
-                       dfn = aov_summary_obj$`df`,
-                       dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
-                       p_val = aov_summary_obj$`p`,
-                       partial_eta = aov_summary_obj$partial_eta2,
-                       as.markdown=as.markdown)
-      sstring[length(sstring)] = ""
-    } else if (is.numeric(predictor)){
-      sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[predictor],
-                            dfn = aov_summary_obj$`df`[predictor],
-                            dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
-                            p_val = aov_summary_obj$`p`[predictor],
-                            partial_eta = aov_summary_obj$partial_eta2[predictor],
-                            as.markdown=as.markdown)
+    sstring = mapply(aov_wrapper, f_stat = aov_summary_obj$`F`,
+                     dfn = aov_summary_obj$`df`,
+                     dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
+                     p_val = aov_summary_obj$`p`,
+                     partial_eta = aov_summary_obj$partial_eta2,
+                     as.markdown=as.markdown)
 
-    } else if (is.character(predictor)){
-      tmp = aov_summary_obj[aov_summary_obj$Predictor == predictor,]
-      sstring = aov_wrapper(f_stat = tmp$`F`[1],
-                            dfn = tmp$`df`[1],
-                            dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
-                            p_val = tmp$`p`[1],
-                            partial_eta = tmp$partial_eta2[1],
-                            as.markdown=as.markdown)
-    } else{
-      sstring = aov_wrapper(f_stat = aov_summary_obj$`F`[nrow(aov_summary_obj)-1],
-                            dfn = aov_summary_obj$`df`[nrow(aov_summary_obj)-1],
-                            dfd = aov_summary_obj$`df`[nrow(aov_summary_obj)],
-                            p_val = aov_summary_obj$`p`[nrow(aov_summary_obj)-1],
-                            partial_eta = aov_summary_obj$partial_eta2[nrow(aov_summary_obj)-1],
-                            as.markdown=as.markdown)
-    }
   } else if (length(aov_summary_obj)==13) {
     #stats::aov() output
     aov_summary_obj = summary(aov_summary_obj)
     res = aov_summary_obj[[1]]
-    if(get.all==TRUE){
-      sstring = mapply(aov_wrapper, f_stat = res$`F value`,
-                       dfn = res$Df,
-                       dfd = res$Df[nrow(res)],
-                       p_val = res$`Pr(>F)`,
-                       as.markdown=as.markdown)
-      sstring[length(sstring)] = NA #last row is just the error term
-    }else if (is.numeric(predictor)){
-      sstring = aov_wrapper(f_stat = res$`F value`[predictor],
-                            dfn = res$Df[predictor],
-                            dfd = res$Df[nrow(res)],
-                            p_val = res$`Pr(>F)`[predictor],
-                            as.markdown=as.markdown)
-    } else if (is.character(predictor)){
-      rownames(res) = unlist(lapply(rownames(res), function(x){x=gsub(" ", "", x); x}))
-      tmp = res[predictor,]
-      sstring = aov_wrapper(f_stat = tmp$`F`[1],
-                            dfn = tmp$`Df`[1],
-                            dfd = res$`Df`[nrow(res)],
-                            p_val = tmp$`Pr(>F)`[1],
-                            as.markdown=as.markdown)
-    } else{
-      sstring = aov_wrapper(f_stat = res$`F value`[nrow(res)-1],
-                            dfn = res$Df[nrow(res)-1],
-                            dfd = res$Df[nrow(res)],
-                            p_val = res$`Pr(>F)`[nrow(res)-1],
-                            as.markdown=as.markdown)
-    }
+    sstring = mapply(aov_wrapper, f_stat = res$`F value`,
+                     dfn = res$Df,
+                     dfd = res$Df[nrow(res)],
+                     p_val = res$`Pr(>F)`,
+                     as.markdown=as.markdown)
+    sstring[length(sstring)] = NA #last row is just the error term
   } else {
     sstring = ""
   }
@@ -502,15 +410,21 @@ extract_r2 <- function(mod){
 #' the model R-squared as a string formaatted for markdown output
 #'
 #' @param mod A linear regression model or the R-squared from a regression model
+#' @param as.markdown optional, indicates whether the resulting string should be formatted for markdown. Default is TRUE
 #' @return Formatted string containing model R-squared
 #' @export
-format_r2 <- function(mod){
+format_r2 <- function(mod,as.markdown=T){
   if(is.numeric(mod)){
     r2 = mod
   }else{
     r2 = extract_r2(mod)
   }
-  r2.txt = paste0("_R_^2^ = ",scales::number(r2, accuracy = 0.01))
-  return(r2.txt)
+  if(as.markdown){
+    r2.txt = paste0("_R_^2^ = ",scales::number(r2, accuracy = 0.01))
+    return(r2.txt)
+  }else{
+    return(paste0("R2 = ",scales::number(r2, accuracy = 0.01)))
+  }
+
 }
 

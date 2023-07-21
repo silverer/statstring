@@ -45,11 +45,8 @@ t.str = format_tstat_apa(t.res)
 #Results of ANOVA
 aov.res = stats::aov(breaks~wool*tension, data = warpbreaks)
 summary(aov.res)
-aov.intrxn = format_anova_string(aov.res)
-#Using a specific predictor
-aov.wool = format_anova_string(summary(aov.res), predictor = "wool")
 #Getting all F-statistics
-all.aov.results = format_anova_string(summary(aov.res), get.all=T)
+all.aov.results = format_anova_string(summary(aov.res))
 
 #Results of linear model
 lm.res = stats::lm(breaks~ wool + tension, data = warpbreaks)
@@ -59,7 +56,8 @@ r2 = format_r2(lm.res)
 
 For the t-test, the output looks like `r t.str`. 
 
-For the ANOVA, the output corresponds to the last factor in the model (in this case, the interaction term): `r aov.intrxn`. You can also specify which predictor you want to extract, for example, the term for wool is: `r aov.wool`. 
+For ANOVAs, the output corresponds to the order in which terms were entered into the model. For example, the term for wool (the first factor in the model) is: `r all.aov.results[1]`, for tension is `r all.aov.results[2]`, and for the interaction between tension and wool: `r all.aov.results[3]`
 
 For a linear model using breaks as the criterion and wool and tension as predictors, `r r2`
 
+You can also get formatted text outputs that do not include the special characters used for formatting things in markdown, such as the underscore for italics. To turn off markdown formatting, pass the argument `as.markdown=F` to your function.

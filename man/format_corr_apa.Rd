@@ -4,7 +4,7 @@
 \alias{format_corr_apa}
 \title{Format results of a bivariate correlation}
 \usage{
-format_corr_apa(r, dof, p)
+format_corr_apa(r, dof, p, as.markdown = T)
 }
 \arguments{
 \item{r}{value of correlation to be formatted}
@@ -12,6 +12,8 @@ format_corr_apa(r, dof, p)
 \item{dof}{degrees of freedom for the correlation}
 
 \item{p}{p-value of correlation}
+
+\item{as.markdown}{optional, indicates whether the resulting string should be formatted for markdown. Default is TRUE}
 }
 \value{
 A formatted bivariate correlation statistic

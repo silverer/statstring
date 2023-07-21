@@ -1,7 +1,45 @@
+#' Helper function to format p-value
+#'
+#' This is the base function that format_pval_apa calls.
+#'
+#' @param p_val P-value to be formatted
+#' @return A formatted p-value string
+#' @export
+
+pval_fmt <- function(p_val, markdown=F){
+  if(is.na(p_val)){
+    return("")
+  }else{
+    tmp = as.numeric(p_val)
+    if(tmp < 0.001){
+      return_str = "_p_ < .001"
+    }
+    else if(tmp < 0.01){
+      tmp = scales::number(tmp, accuracy = 0.001)
+      tmp = stringr::str_replace(tmp, "0.", ".")
+      return_str = paste0("_p_ = ", tmp)
+    }
+    else if(scales::number(tmp, accuracy = .01)=="1.00"){
+      return_str = paste0("_p_ > .99")
+    }
+    else{
+      tmp = scales::number(tmp, accuracy = 0.01)
+      tmp = stringr::str_replace(tmp, "0.", ".")
+      return_str = paste0("_p_ = ", tmp)
+    }
+  }
+  if(markdown==F){
+    return(str_remove_all(return_str, "[_]"))
+  }else{
+    return(return_str)
+  }
+
+}
+
 
 #' Format a p-value
 #'
-#' This function takes a p-value (numeric or character) and formats it so that
+#' This function takes a p-value (numeric or character) or list of p-values and formats it so that
 #' values less than 0.001 are treated as <0.001. Values less than 0.01 are treated as
 #' < 0.01
 #'
@@ -9,29 +47,12 @@
 #' @return A formatted p-value string
 #' @export
 
-format_pval_apa <- function(p_val){
-  if(is.na(p_val)){
-    return("")
+format_pval_apa <- function(p_val, as.markdown=F){
+  if(length(p_val)>1){
+    return(mapply(pval_fmt, p_val=p_val, markdown=as.markdoen, USE.NAMES = F))
   }else{
-    tmp = as.numeric(p_val)
-    if(tmp < 0.001){
-      return("_p_ < .001")
-    }
-    else if(tmp < 0.01){
-      tmp = scales::number(tmp, accuracy = 0.001)
-      tmp = stringr::str_replace(tmp, "0.", ".")
-      return(paste0("_p_ = ", tmp))
-    }
-    else if(scales::number(tmp, accuracy = .01)=="1.00"){
-      return(paste0("_p_ > .99"))
-    }
-    else{
-      tmp = scales::number(tmp, accuracy = 0.01)
-      tmp = stringr::str_replace(tmp, "0.", ".")
-      return(paste0("_p_ = ", tmp))
-    }
+    return(pval_fmt(p_val))
   }
-
 }
 
 #' Get p-value significance stars

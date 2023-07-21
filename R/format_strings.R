@@ -29,7 +29,7 @@ pval_fmt <- function(p_val, markdown=F){
     }
   }
   if(markdown==F){
-    return(str_remove_all(return_str, "[_]"))
+    return(stringr::str_remove_all(return_str, "[_]"))
   }else{
     return(return_str)
   }

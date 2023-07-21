@@ -11,7 +11,8 @@ format_pairwise_comparison(
   mdiff = "none",
   lci = "none",
   uci = "none",
-  cohen_d = "none"
+  cohen_d = "none",
+  as.markdown = T
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ format_pairwise_comparison(
 \item{uci}{optional, the upper end of the confidence interval on the comparison}
 
 \item{cohen_d}{optional, Cohen's d standardized effect size}
+
+\item{as.markdown}{optional, indicates whether the resulting string should be formatted for markdown. Default is TRUE}
 }
 \value{
 A formatted t-statistic

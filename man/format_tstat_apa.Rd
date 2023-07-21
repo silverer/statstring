@@ -4,12 +4,14 @@
 \alias{format_tstat_apa}
 \title{Format results of a t-test}
 \usage{
-format_tstat_apa(t_result, cohen_d = "none")
+format_tstat_apa(t_result, cohen_d = "none", as.markdown = T)
 }
 \arguments{
 \item{t_result}{t-test result to be formatted}
 
 \item{cohen_d}{optional, Cohen's d standardized effect size}
+
+\item{as.markdown}{optional, indicates whether the resulting string should be formatted for markdown. Default is TRUE}
 }
 \value{
 A formatted t-statistic

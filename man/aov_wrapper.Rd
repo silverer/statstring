@@ -4,7 +4,7 @@
 \alias{aov_wrapper}
 \title{Format ANOVA results for APA reporting}
 \usage{
-aov_wrapper(f_stat, dfn, dfd, p_val, partial_eta = NA, as_markdown = TRUE)
+aov_wrapper(f_stat, dfn, dfd, p_val, partial_eta = NA, as.markdown = TRUE)
 }
 \arguments{
 \item{f_stat}{The F ratio from an ANOVA}
@@ -17,7 +17,7 @@ aov_wrapper(f_stat, dfn, dfd, p_val, partial_eta = NA, as_markdown = TRUE)
 
 \item{partial_eta}{Optional, the effect size from an ANOVA. Default is NA}
 
-\item{as_markdown}{Return a string formatted for markdown output? Default it TRUE}
+\item{as.markdown}{Return a string formatted for markdown output? Default is TRUE}
 }
 \value{
 An APA-formatted string of the ANOVA results

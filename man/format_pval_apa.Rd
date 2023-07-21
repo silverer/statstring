@@ -4,10 +4,12 @@
 \alias{format_pval_apa}
 \title{Format a p-value}
 \usage{
-format_pval_apa(p_val, as.markdown = F)
+format_pval_apa(p_val, as.markdown = T)
 }
 \arguments{
 \item{p_val}{P-value to be formatted}
+
+\item{as.markdown}{optional, indicates whether the resulting string should be formatted for markdown. Default is TRUE}
 }
 \value{
 A formatted p-value string
